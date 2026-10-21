@@ -2,6 +2,20 @@
 
 Record meaningful implementation decisions as work happens. Use one dated entry per cohesive change.
 
+## 2026-10-21 — Plan a Shopify Headless Commerce Backend
+
+### What changed
+
+Added a backend blueprint that defines Netlify Functions as a same-origin API layer and Shopify as the commerce source of truth. The specification covers catalog, search, secure cart sessions, checkout handoff, hosted accounts, third-party integrations, security, failure handling, implementation phases, and acceptance tests.
+
+### Why this approach
+
+The original UNBD store already uses Shopify for product variants, availability, carts, customer accounts, checkout, payments, shipping, taxes, orders, policies, Judge.me reviews, and GoKwik integration. Reusing those verified systems lets the editorial storefront gain live commerce behavior without duplicating sensitive business state.
+
+### Why this method over alternatives
+
+A small Netlify backend-for-frontend fits the current deployment and gives the browser a stable same-origin API. A fully custom commerce backend would require new inventory, authentication, payment, order, tax, shipping, refund, security, and compliance systems without a demonstrated business need. Direct browser calls to Shopify would also couple the interface to Shopify GraphQL and make centralized validation, controlled errors, and cart-session handling harder.
+
 ## 2026-10-21 — Establish Continuous Decision Logging
 
 ### What changed
