@@ -2,6 +2,20 @@
 
 Record meaningful implementation decisions as work happens. Use one dated entry per cohesive change.
 
+## 2026-10-21 — Build a Procedural Interactive Plot Piece
+
+### What changed
+
+Added a full-viewport pinned chapter featuring a large procedural 3D ring. Scroll position rolls the ring across the scene, eases it into a controlled wobble and product-facing tilt, then sends it forward through the camera into the next chapter. Scroll also controls chapter copy, counter, light, and progress. Pointer dragging adds direct desktop interaction, while touch keeps native vertical scrolling and reduced-motion users receive a static composition.
+
+### Why this approach
+
+The ring becomes a memorable product-led transition between the UNBD manifesto and campaign story. A faceted silver form, electric-blue light, restrained labels, and oversized editorial type keep the effect inside the established visual system instead of presenting it as a separate technical demo.
+
+### Why this method over alternatives
+
+The native canvas renderer constructs and shades a torus mesh with perspective math, so the object has real rotational depth without downloading a generic model or inventing details not present in supplied product assets. It also preserves the zero-dependency build and existing single-frame scroll scheduler. Three.js, WebGL libraries, and remote model viewers would add payload and lifecycle costs for one object, while a flat image transform would not provide comparable depth or direct manipulation.
+
 ## 2026-10-21 — Plan a Shopify Headless Commerce Backend
 
 ### What changed

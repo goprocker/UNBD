@@ -15,6 +15,7 @@ requireMatch('index.html', /class="skip-link"/, 'missing keyboard skip link');
 requireMatch('index.html', /prefetch|preconnect/, 'missing connection hint for remote assets');
 requireMatch('index.html', /data-product-grid/, 'missing product grid mount');
 requireMatch('index.html', /data-scroll-story/, 'missing pinned scroll story');
+requireMatch('index.html', /data-ring-canvas/, 'missing interactive 3D ring canvas');
 requireMatch('styles.css', /@media \(min-width: 768px\)/, 'missing tablet breakpoint');
 requireMatch('styles.css', /@media \(min-width: 1024px\)/, 'missing desktop breakpoint');
 requireMatch('styles.css', /prefers-reduced-motion/, 'missing reduced-motion support');
@@ -23,6 +24,7 @@ requireMatch('app.js', /IntersectionObserver/, 'missing progressive reveal obser
 requireMatch('app.js', /requestAnimationFrame\(updateScrollState\)/, 'missing scroll animation frame scheduling');
 requireMatch('app.js', /orientationchange/, 'mobile motion does not recalculate after orientation changes');
 requireMatch('app.js', /reducedMotion\.matches/, 'scroll motion does not respect reduced-motion preference');
+requireMatch('app.js', /function renderRing\(/, 'missing procedural 3D ring renderer');
 requireMatch('app.js', /https:\/\/unbd\.store\/products\//, 'product actions do not hand off to Shopify');
 requireMatch('app.js', /\/products\/\$\{product\.slug\}\//, 'product cards do not link to local detail pages');
 requireMatch('netlify.toml', /publish = "dist"/, 'publish directory is not dist');

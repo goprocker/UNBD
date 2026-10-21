@@ -22,6 +22,11 @@ const storySteps = [...document.querySelectorAll('[data-story-step]')];
 const storyCounter = document.querySelector('[data-story-counter]');
 const storyProgress = document.querySelector('[data-story-progress]');
 const introHeading = document.querySelector('.intro h2');
+const ringStage = document.querySelector('[data-ring-stage]');
+const ringCanvas = document.querySelector('[data-ring-canvas]');
+const ringCounter = document.querySelector('[data-ring-counter]');
+const ringProgress = document.querySelector('[data-ring-progress]');
+const ringChapters = [...document.querySelectorAll('[data-ring-chapter]')];
 
 if (productGrid) productGrid.innerHTML = products.map((product, index) => `
   <article class="product-card reveal" style="--order:${index}">
@@ -106,6 +111,215 @@ if (introHeading) {
 const introWords = [...document.querySelectorAll('.intro h2 .word')];
 const productCards = [...document.querySelectorAll('.product-card')];
 
+const ringState = {
+  progress: reducedMotion.matches ? 0.34 : 0,
+  dragX: 0,
+  dragY: 0,
+  hoverX: 0,
+  hoverY: 0,
+  dragging: false,
+  lastX: 0,
+  lastY: 0
+};
+
+function createRingMesh(segments = 42, sides = 18) {
+  const points = [];
+  const triangles = [];
+  const majorRadius = 1.5;
+  const tubeRadius = 0.43;
+
+  for (let segment = 0; segment <= segments; segment += 1) {
+    const u = (segment / segments) * Math.PI * 2;
+    for (let side = 0; side <= sides; side += 1) {
+      const v = (side / sides) * Math.PI * 2;
+      const cosV = Math.cos(v);
+      points.push({
+        x: (majorRadius + tubeRadius * cosV) * Math.cos(u),
+        y: (majorRadius + tubeRadius * cosV) * Math.sin(u),
+        z: tubeRadius * Math.sin(v),
+        nx: cosV * Math.cos(u),
+        ny: cosV * Math.sin(u),
+        nz: Math.sin(v)
+      });
+    }
+  }
+
+  const row = sides + 1;
+  for (let segment = 0; segment < segments; segment += 1) {
+    for (let side = 0; side < sides; side += 1) {
+      const a = segment * row + side;
+      const b = a + row;
+      triangles.push([points[a], points[b], points[a + 1]]);
+      triangles.push([points[b], points[b + 1], points[a + 1]]);
+    }
+  }
+
+  return triangles;
+}
+
+const ringMesh = createRingMesh();
+
+function rotateRingPoint(point, rotateX, rotateY, rotateZ) {
+  const cosX = Math.cos(rotateX);
+  const sinX = Math.sin(rotateX);
+  const cosY = Math.cos(rotateY);
+  const sinY = Math.sin(rotateY);
+  const cosZ = Math.cos(rotateZ);
+  const sinZ = Math.sin(rotateZ);
+  const y1 = point.y * cosX - point.z * sinX;
+  const z1 = point.y * sinX + point.z * cosX;
+  const x2 = point.x * cosY + z1 * sinY;
+  const z2 = -point.x * sinY + z1 * cosY;
+
+  return {
+    x: x2 * cosZ - y1 * sinZ,
+    y: x2 * sinZ + y1 * cosZ,
+    z: z2
+  };
+}
+
+function smoothStep(value) {
+  const normalized = clamp(value);
+  return normalized * normalized * (3 - 2 * normalized);
+}
+
+function resizeRingCanvas() {
+  if (!ringCanvas) return;
+  const rect = ringCanvas.getBoundingClientRect();
+  const pixelRatio = Math.min(window.devicePixelRatio || 1, 1.5);
+  const width = Math.max(1, Math.round(rect.width * pixelRatio));
+  const height = Math.max(1, Math.round(rect.height * pixelRatio));
+  if (ringCanvas.width !== width || ringCanvas.height !== height) {
+    ringCanvas.width = width;
+    ringCanvas.height = height;
+  }
+  renderRing();
+}
+
+function renderRing() {
+  if (!ringCanvas) return;
+  const context = ringCanvas.getContext('2d');
+  if (!context) return;
+
+  const width = ringCanvas.width;
+  const height = ringCanvas.height;
+  const pixelRatio = Math.min(window.devicePixelRatio || 1, 1.5);
+  const mobile = width / pixelRatio < 768;
+  const roll = smoothStep(ringState.progress / 0.55);
+  const settle = smoothStep((ringState.progress - 0.55) / 0.2);
+  const fall = smoothStep((ringState.progress - 0.75) / 0.25);
+  const centerX = width * ((mobile ? -0.25 : -0.13) + roll * (mobile ? 0.76 : 0.81) - fall * (mobile ? 0.01 : 0.18));
+  const groundY = height * (mobile ? 0.39 : 0.62);
+  const bounce = Math.sin(roll * Math.PI * 4) * (1 - roll) * height * 0.025;
+  const centerY = groundY - bounce + fall * height * 0.1;
+  const baseSize = Math.min(width, height) * (mobile ? 0.31 : 0.36);
+  const scale = baseSize * (0.86 + settle * 0.18) * (1 + fall * fall * 4.6);
+  const rotateX = 1.08 - settle * 0.58 + fall * 0.2 + ringState.dragY + ringState.hoverY * 0.08;
+  const rotateY = roll * Math.PI * 4.5 + settle * Math.PI * 0.35 + fall * Math.PI * 0.18 + ringState.dragX + ringState.hoverX * 0.12;
+  const rotateZ = roll * Math.PI * 2.2 - settle * 0.28 + fall * 0.16;
+  const camera = 5.4;
+  const light = { x: -0.4, y: -0.55, z: 0.73 };
+  const projected = [];
+
+  context.clearRect(0, 0, width, height);
+  context.globalAlpha = 1 - smoothStep((fall - 0.76) / 0.24);
+  context.save();
+  context.globalAlpha *= 0.36 * (1 - fall);
+  context.filter = `blur(${1.4 * pixelRatio}rem)`;
+  context.fillStyle = '#1010e8';
+  context.beginPath();
+  context.ellipse(centerX, centerY + scale * 0.82, scale * 1.05, scale * 0.2, 0, 0, Math.PI * 2);
+  context.fill();
+  context.restore();
+
+  for (const triangle of ringMesh) {
+    const vertices = triangle.map(point => {
+      const position = rotateRingPoint(point, rotateX, rotateY, rotateZ);
+      const normal = rotateRingPoint({ x: point.nx, y: point.ny, z: point.nz }, rotateX, rotateY, rotateZ);
+      const perspective = camera / (camera - position.z);
+      return {
+        x: centerX + position.x * scale * perspective,
+        y: centerY + position.y * scale * perspective,
+        z: position.z,
+        normal
+      };
+    });
+    const normal = {
+      x: (vertices[0].normal.x + vertices[1].normal.x + vertices[2].normal.x) / 3,
+      y: (vertices[0].normal.y + vertices[1].normal.y + vertices[2].normal.y) / 3,
+      z: (vertices[0].normal.z + vertices[1].normal.z + vertices[2].normal.z) / 3
+    };
+    projected.push({
+      vertices,
+      depth: (vertices[0].z + vertices[1].z + vertices[2].z) / 3,
+      light: Math.max(-1, Math.min(1, normal.x * light.x + normal.y * light.y + normal.z * light.z)),
+      facing: normal.z
+    });
+  }
+
+  projected.sort((first, second) => first.depth - second.depth);
+  for (const facet of projected) {
+    const brightness = Math.round(35 + (facet.light + 1) * 23 + Math.max(0, facet.facing) * 11);
+    const blueReflection = Math.max(0, facet.light) * 7;
+    context.beginPath();
+    context.moveTo(facet.vertices[0].x, facet.vertices[0].y);
+    context.lineTo(facet.vertices[1].x, facet.vertices[1].y);
+    context.lineTo(facet.vertices[2].x, facet.vertices[2].y);
+    context.closePath();
+    context.fillStyle = `hsl(${220 + blueReflection} 9% ${brightness}%)`;
+    context.fill();
+    context.strokeStyle = `hsla(220 16% ${Math.min(88, brightness + 8)}% / 0.2)`;
+    context.lineWidth = 0.55 * pixelRatio;
+    context.stroke();
+  }
+
+  const labelSize = Math.max(10, Math.min(14, width / pixelRatio * 0.012)) * pixelRatio;
+  context.save();
+  context.fillStyle = 'rgba(255,255,255,.55)';
+  context.font = `${labelSize}px Helvetica, sans-serif`;
+  context.letterSpacing = `${2 * pixelRatio}px`;
+  context.textAlign = 'center';
+  if (fall < 0.55) context.fillText('UNBOUND / OBJECT 001', centerX, centerY + scale * 1.18);
+  context.restore();
+  context.globalAlpha = 1;
+}
+
+if (ringCanvas) {
+  ringCanvas.addEventListener('pointerdown', event => {
+    if (event.pointerType === 'touch') return;
+    ringState.dragging = true;
+    ringState.lastX = event.clientX;
+    ringState.lastY = event.clientY;
+    ringCanvas.setPointerCapture(event.pointerId);
+  });
+
+  ringCanvas.addEventListener('pointermove', event => {
+    const rect = ringCanvas.getBoundingClientRect();
+    ringState.hoverX = ((event.clientX - rect.left) / rect.width - 0.5) * 2;
+    ringState.hoverY = ((event.clientY - rect.top) / rect.height - 0.5) * 2;
+    if (ringState.dragging) {
+      ringState.dragX += (event.clientX - ringState.lastX) * 0.009;
+      ringState.dragY = clamp(ringState.dragY + (event.clientY - ringState.lastY) * 0.006, -0.7, 0.7);
+      ringState.lastX = event.clientX;
+      ringState.lastY = event.clientY;
+    }
+    renderRing();
+  });
+
+  const releaseRing = event => {
+    ringState.dragging = false;
+    if (ringCanvas.hasPointerCapture(event.pointerId)) ringCanvas.releasePointerCapture(event.pointerId);
+  };
+  ringCanvas.addEventListener('pointerup', releaseRing);
+  ringCanvas.addEventListener('pointercancel', releaseRing);
+  ringCanvas.addEventListener('pointerleave', () => {
+    if (ringState.dragging) return;
+    ringState.hoverX = 0;
+    ringState.hoverY = 0;
+    renderRing();
+  });
+}
+
 function clamp(value, min = 0, max = 1) {
   return Math.min(max, Math.max(min, value));
 }
@@ -132,6 +346,19 @@ function updateScrollMotion() {
   const introProgress = sectionProgress(document.querySelector('.intro'), 0.78, 0.28);
   const litWords = Math.ceil(introProgress * introWords.length * 1.2);
   introWords.forEach((word, index) => word.classList.toggle('is-lit', index < litWords));
+
+  if (ringStage) {
+    const rect = ringStage.getBoundingClientRect();
+    const range = Math.max(ringStage.offsetHeight - window.innerHeight, 1);
+    ringState.progress = clamp(-rect.top / range);
+    const active = Math.min(2, Math.floor(ringState.progress * 3));
+    ringChapters.forEach((chapter, index) => chapter.classList.toggle('is-active', index === active));
+    if (ringCounter) ringCounter.textContent = `0${active + 1} / 03`;
+    if (ringProgress) ringProgress.style.transform = `scaleX(${ringState.progress})`;
+    ringStage.style.setProperty('--ring-glow', String(0.55 + Math.sin(ringState.progress * Math.PI) * 0.45));
+    ringStage.style.setProperty('--ring-copy-opacity', String(smoothStep((ringState.progress - 0.22) / 0.18) * (1 - smoothStep((ringState.progress - 0.82) / 0.16))));
+    renderRing();
+  }
 
   if (story) {
     const rect = story.getBoundingClientRect();
@@ -177,6 +404,13 @@ window.addEventListener('scroll', () => {
   ticking = true;
   requestAnimationFrame(updateScrollState);
 }, { passive: true });
-window.addEventListener('resize', () => requestAnimationFrame(updateScrollState), { passive: true });
-window.addEventListener('orientationchange', () => requestAnimationFrame(updateScrollState), { passive: true });
+window.addEventListener('resize', () => requestAnimationFrame(() => {
+  resizeRingCanvas();
+  updateScrollState();
+}), { passive: true });
+window.addEventListener('orientationchange', () => requestAnimationFrame(() => {
+  resizeRingCanvas();
+  updateScrollState();
+}), { passive: true });
+resizeRingCanvas();
 updateScrollState();
