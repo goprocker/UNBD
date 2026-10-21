@@ -170,6 +170,20 @@ The same hero depth, manifesto painting, pinned story, product parallax, and sta
 
 The existing native scroll loop already owns motion state. Extending its CSS and viewport lifecycle keeps desktop and mobile behavior consistent without a second animation system, scroll hijacking, or extra library weight.
 
+## 2026-10-21 — Guard Scroll Motion Against Null DOM Elements
+
+### What changed
+
+Added null guards in `updateScrollMotion()` around the hero block (`hero`, `heroMedia`, `heroType`) and the statement block (`statementEl`, `statementSection`). Added a null guard before assigning `productGrid.innerHTML`.
+
+### Why this approach
+
+`app.js` is loaded as a module on every page including inner product, contact, and returns pages. Those pages do not contain `.hero`, `.statement__large`, `.statement`, or `[data-product-grid]`, so the previous code threw `TypeError: Cannot read properties of null` on any inner route, breaking the scroll-progress bar and menu behaviour.
+
+### Why this method over alternatives
+
+Optional chaining (`?.`) could silence property access, but it would not guard the entire block correctly when multiple related variables are needed together. Explicit `if` guards are clearer about the intent and keep each section's logic self-contained.
+
 ## 2026-10-21 — Restore Original Mobile Hero Campaign
 
 ### What changed

@@ -23,7 +23,7 @@ const storyCounter = document.querySelector('[data-story-counter]');
 const storyProgress = document.querySelector('[data-story-progress]');
 const introHeading = document.querySelector('.intro h2');
 
-productGrid.innerHTML = products.map((product, index) => `
+if (productGrid) productGrid.innerHTML = products.map((product, index) => `
   <article class="product-card reveal" style="--order:${index}">
     <a class="product-card__media" href="/products/${product.slug}/" aria-label="View ${product.name}">
       <img src="${product.primary}" alt="${product.name}" loading="lazy">
@@ -122,10 +122,12 @@ function updateScrollMotion() {
   const hero = document.querySelector('.hero');
   const heroMedia = document.querySelector('.hero__media img');
   const heroType = document.querySelector('.hero__type');
-  const heroProgress = clamp(window.scrollY / Math.max(hero.offsetHeight, 1));
-  heroMedia.style.transform = `scale(${1 + heroProgress * 0.09}) translate3d(0, ${heroProgress * 3}%, 0)`;
-  heroType.style.transform = `translate3d(0, ${heroProgress * 14}vh, 0)`;
-  heroType.style.opacity = String(1 - heroProgress * 0.9);
+  if (hero && heroMedia && heroType) {
+    const heroProgress = clamp(window.scrollY / Math.max(hero.offsetHeight, 1));
+    heroMedia.style.transform = `scale(${1 + heroProgress * 0.09}) translate3d(0, ${heroProgress * 3}%, 0)`;
+    heroType.style.transform = `translate3d(0, ${heroProgress * 14}vh, 0)`;
+    heroType.style.opacity = String(1 - heroProgress * 0.9);
+  }
 
   const introProgress = sectionProgress(document.querySelector('.intro'), 0.78, 0.28);
   const litWords = Math.ceil(introProgress * introWords.length * 1.2);
@@ -151,10 +153,13 @@ function updateScrollMotion() {
     card.style.setProperty('--product-y', `${(local - 0.5) * -8}%`);
   });
 
-  const statement = document.querySelector('.statement__large');
-  const statementValue = sectionProgress(document.querySelector('.statement'), 0.9, 0.1);
-  statement.style.transform = `scale(${0.82 + statementValue * 0.18})`;
-  statement.style.letterSpacing = `${-0.04 - statementValue * 0.06}em`;
+  const statementEl = document.querySelector('.statement__large');
+  const statementSection = document.querySelector('.statement');
+  if (statementEl && statementSection) {
+    const statementValue = sectionProgress(statementSection, 0.9, 0.1);
+    statementEl.style.transform = `scale(${0.82 + statementValue * 0.18})`;
+    statementEl.style.letterSpacing = `${-0.04 - statementValue * 0.06}em`;
+  }
 }
 
 let ticking = false;
