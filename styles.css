@@ -81,8 +81,10 @@ img { display: block; width: 100%; }
 .intro__aside { margin: 0; justify-self: end; font-size: 0.72rem; letter-spacing: 0.08em; text-align: right; text-transform: uppercase; }
 .ring-stage { position: relative; height: 300svh; color: var(--white); background: #050505; }
 .ring-stage__sticky { position: sticky; top: 0; min-height: 100svh; overflow: hidden; isolation: isolate; }
-.ring-stage__canvas { position: absolute; z-index: 1; inset: 0; width: 100%; height: 100%; cursor: grab; touch-action: pan-y; }
-.ring-stage__canvas:active { cursor: grabbing; }
+.ring-stage__object { position: absolute; z-index: 1; top: 50%; left: 50%; width: clamp(32rem, 96vw, 86rem); aspect-ratio: 1; cursor: grab; touch-action: pan-y; transform-style: preserve-3d; will-change: transform, opacity; }
+.ring-stage__object:active { cursor: grabbing; }
+.ring-stage__object::after { content: ""; position: absolute; z-index: -1; left: 13%; right: 13%; bottom: 2%; height: 12%; border-radius: 50%; background: rgba(16,16,232,.42); filter: blur(1.5rem); transform: scaleX(var(--ring-shadow-scale, 1)); opacity: var(--ring-shadow-opacity, .5); }
+.ring-stage__object img { width: 100%; height: 100%; object-fit: contain; user-select: none; filter: drop-shadow(0 2rem 2.5rem rgba(0,0,0,.5)); }
 .ring-stage__glow { position: absolute; z-index: 0; inset: 12% -20% auto; height: 65%; pointer-events: none; background: radial-gradient(circle at 50% 50%, rgba(16,16,232,.36), rgba(16,16,232,.08) 34%, transparent 68%); filter: blur(1.5rem); opacity: var(--ring-glow, .75); }
 .ring-stage__header { position: absolute; z-index: 2; top: calc(var(--header-height) + 1rem); left: var(--gutter); right: var(--gutter); display: flex; justify-content: space-between; pointer-events: none; }
 .ring-stage__header p { margin: 0; font-size: 0.68rem; letter-spacing: 0.1em; text-transform: uppercase; }
@@ -237,7 +239,7 @@ img { display: block; width: 100%; }
 }
 
 @media (max-width: 767px) {
-  .hero__media img, .hero__type, .ring-stage__canvas, .story-frame, .story-frame img, .product-card__media img, .statement__large { will-change: transform, opacity; }
+  .hero__media img, .hero__type, .ring-stage__object, .story-frame, .story-frame img, .product-card__media img, .statement__large { will-change: transform, opacity; }
   .hero__media img { object-position: center; }
   .hero__shade { background: linear-gradient(180deg, rgba(0,0,0,.08), transparent 35%, transparent 58%, rgba(0,0,0,.82)); }
   .hero__type { justify-content: flex-end; padding-top: calc(var(--header-height) + 1rem); }
@@ -287,6 +289,7 @@ img { display: block; width: 100%; }
   .scroll-story__sticky { position: relative; }
   .ring-stage { height: 100svh; }
   .ring-stage__sticky { position: relative; }
+  .ring-stage__object { left: 50%; width: min(146vw, 52rem); opacity: 1 !important; transform: translate3d(-50%, -58%, 0) rotate(-8deg) !important; }
   .ring-stage__eyebrow { display: none; }
   .ring-stage__copy { opacity: 1; }
   .intro h2 .word { color: var(--ink); transform: none; }

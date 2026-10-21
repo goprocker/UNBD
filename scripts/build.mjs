@@ -41,6 +41,7 @@ const returnsPage = shell({
 await rm(output, { recursive: true, force: true });
 await mkdir(output, { recursive: true });
 await Promise.all(assets.map(file => cp(resolve(root, file), resolve(output, file))));
+await cp(resolve(root, 'assets'), resolve(output, 'assets'), { recursive: true });
 
 const pages = [
   ...products.map(product => [`products/${product.slug}/index.html`, productPage(product)]),

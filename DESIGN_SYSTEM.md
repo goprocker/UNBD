@@ -18,7 +18,7 @@ Editorial streetwear with restrained industrial UI. Photography carries emotion;
 - Manifesto words change from muted to solid as reading progress advances.
 - Pinned Drop 001 story divides its scroll range into three explicit product chapters.
 - Product images use shallow vertical parallax; hover image switching remains independent.
-- The Plot Piece chapter uses a procedural canvas mesh with scroll-driven rotation and pointer drag, framed by the same editorial type and electric-blue lighting.
+- The Plot Piece chapter uses a transparent high-fidelity cutout of the official product photograph with scroll-driven perspective, rotation, scale, and pointer drag, framed by the same editorial type and electric-blue lighting.
 - All continuous effects stop under `prefers-reduced-motion`.
 - Breakpoints remain mobile-first at 768 and 1024 CSS pixels.
 

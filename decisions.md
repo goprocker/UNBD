@@ -6,7 +6,7 @@ Record meaningful implementation decisions as work happens. Use one dated entry 
 
 ### What changed
 
-Added a full-viewport pinned chapter featuring a large procedural 3D ring. Scroll position rolls the ring across the scene, eases it into a controlled wobble and product-facing tilt, then sends it forward through the camera into the next chapter. Scroll also controls chapter copy, counter, light, and progress. Pointer dragging adds direct desktop interaction, while touch keeps native vertical scrolling and reduced-motion users receive a static composition.
+Added a full-viewport pinned chapter featuring a large realistic Plot Piece ring cutout derived from the official product photograph. Scroll position rolls the ring across the scene, eases it into a controlled wobble and product-facing tilt, then sends it forward through the camera into the next chapter. Scroll also controls chapter copy, counter, light, and progress. Pointer dragging adds direct desktop interaction, while touch keeps native vertical scrolling and reduced-motion users receive a static composition.
 
 ### Why this approach
 
@@ -14,7 +14,7 @@ The ring becomes a memorable product-led transition between the UNBD manifesto a
 
 ### Why this method over alternatives
 
-The native canvas renderer constructs and shades a torus mesh with perspective math, so the object has real rotational depth without downloading a generic model or inventing details not present in supplied product assets. It also preserves the zero-dependency build and existing single-frame scroll scheduler. Three.js, WebGL libraries, and remote model viewers would add payload and lifecycle costs for one object, while a flat image transform would not provide comparable depth or direct manipulation.
+A transparent high-fidelity cutout preserves the real open cuff shape, engraved “do it for the plot” face, silver texture, and blue reflections from the official image. CSS perspective and the existing single-frame scroll scheduler provide depth and direct manipulation without inventing generic ring geometry. Three.js, WebGL libraries, and remote model viewers would add payload and lifecycle costs while still requiring an accurate 3D product scan that is not available.
 
 ## 2026-10-21 — Plan a Shopify Headless Commerce Backend
 
